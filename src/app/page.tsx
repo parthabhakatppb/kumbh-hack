@@ -81,6 +81,28 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [fetchAll]);
 
+  // Automated Spontaneous Alerts Loop
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const triggerAutoEvent = async () => {
+      try {
+        await triggerSimulatedIncident();
+        await fetchAll();
+      } catch (e) {
+        console.error("Auto-incident error", e);
+      }
+      
+      // Schedule next event (45s to 90s interval for variety)
+      const nextDelay = Math.random() * 45000 + 45000;
+      timeoutId = setTimeout(triggerAutoEvent, nextDelay);
+    };
+
+    // Start the first automated event 30 seconds after load
+    timeoutId = setTimeout(triggerAutoEvent, 30000);
+    return () => clearTimeout(timeoutId);
+  }, [fetchAll]);
+
   const handleTriggerIncident = async () => {
     if (isTriggering) return;
     setIsTriggering(true);
@@ -97,6 +119,17 @@ export default function Dashboard() {
   const handleExecuteStrategy = async (id: string) => {
     try {
       await executeOmniStrategy(id);
+      await fetchAll();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleManualOverride = async () => {
+    try {
+      await fetch("http://127.0.0.1:8000/api/manual-override", {
+        method: "POST",
+      });
       await fetchAll();
     } catch (err) {
       console.error(err);
@@ -235,6 +268,16 @@ export default function Dashboard() {
           </div>
           <div className="h-4 w-px bg-slate-800" />
 
+          {/* Stampede Risk */}
+          <div className="flex items-center gap-2 text-slate-400">
+            <Activity className={`h-3 w-3 ${systemStatus.threat_level === "CRITICAL" ? "text-rose-500 animate-pulse" : "text-amber-500"}`} />
+            <span className={`font-semibold ${systemStatus.threat_level === "CRITICAL" ? "text-rose-400" : "text-amber-400"}`}>
+              {systemStatus.threat_level === "CRITICAL" ? "98.5%" : "12.4%"}
+            </span>
+            <span className="text-slate-600">STAMPEDE PROBABILITY</span>
+          </div>
+          <div className="h-4 w-px bg-slate-800" />
+
           {/* Uptime */}
           <div className="flex items-center gap-2 text-slate-400 ml-auto">
             <Clock className="h-3 w-3 text-slate-500" />
@@ -245,22 +288,28 @@ export default function Dashboard() {
       )}
 
       {/* ===== MAIN CONTENT GRID ===== */}
-      <main className="flex-1 grid grid-cols-12 gap-3 p-3 max-h-[calc(100vh-5.75rem)] overflow-hidden">
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 min-w-[1024px]">
         {/* Left Column: Map + Metrics */}
-        <div className="col-span-8 flex flex-col gap-3 h-full overflow-hidden">
+        <div className="lg:col-span-8 flex flex-col gap-4">
           {/* Tactical Map */}
-          <div className="flex-1 rounded-xl border border-slate-800/80 bg-slate-900/30 relative overflow-hidden min-h-[380px] scan-line-overlay">
-            <MapView telemetryData={telemetry} />
+          <div className="rounded-xl border border-slate-800/80 bg-slate-900/30 relative overflow-hidden h-[450px] lg:h-[550px] scan-line-overlay">
+            {/* Interactive SVG Map Component */}
+            <div className="absolute inset-0 z-0">
+              <MapView 
+                telemetryData={telemetry} 
+                onManualOverride={handleManualOverride}
+              />
+            </div>
           </div>
 
           {/* Metrics Panel */}
-          <div className="h-56 rounded-xl border border-slate-800/80 bg-slate-900/30 p-3 shrink-0">
+          <div className="rounded-xl border border-slate-800/80 bg-slate-900/30 p-3 h-[280px]">
             <MetricsPanel telemetryData={telemetry} history={history} />
           </div>
         </div>
 
         {/* Right Column: Cortex AI Feed */}
-        <div className="col-span-4 rounded-xl border border-slate-800/80 bg-slate-900/30 p-3 flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-4 rounded-xl border border-slate-800/80 bg-slate-900/40 p-4 relative overflow-hidden flex flex-col h-[846px] sticky top-20">
           <CortexFeed
             strategies={strategies}
             onExecute={handleExecuteStrategy}

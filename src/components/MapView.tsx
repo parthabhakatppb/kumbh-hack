@@ -19,9 +19,10 @@ interface MapViewProps {
       }
     >;
   } | null;
+  onManualOverride?: () => void;
 }
 
-export default function MapView({ telemetryData }: MapViewProps) {
+export default function MapView({ telemetryData, onManualOverride }: MapViewProps) {
   const [viewMode, setViewMode] = useState<"micro" | "macro">("micro");
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
@@ -94,13 +95,25 @@ export default function MapView({ telemetryData }: MapViewProps) {
         </button>
       </div>
 
-      {/* Mode Label */}
-      <div className="absolute top-3 right-3 z-10 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-mono text-slate-500 flex items-center gap-2 backdrop-blur-sm">
-        <Layers className="h-3.5 w-3.5" />
-        <span>
-          {viewMode === "micro" ? "UJJAIN COMMAND ZONE" : "REGIONAL TRANSIT GRID"}
-        </span>
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+      {/* Mode Label and Override */}
+      <div className="absolute top-3 right-3 z-10 flex gap-2">
+        {onManualOverride && (
+          <button
+            onClick={onManualOverride}
+            className="bg-rose-500/10 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold flex items-center gap-2 backdrop-blur-sm transition-all"
+            title="Force System Flush to Baseline"
+          >
+            <Radio className="h-3.5 w-3.5" />
+            ANTI-STAMPEDE LOCKDOWN
+          </button>
+        )}
+        <div className="bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-mono text-slate-500 flex items-center gap-2 backdrop-blur-sm">
+          <Layers className="h-3.5 w-3.5" />
+          <span>
+            {viewMode === "micro" ? "UJJAIN COMMAND ZONE" : "REGIONAL TRANSIT GRID"}
+          </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        </div>
       </div>
 
       {/* ===== MAIN SVG CANVAS ===== */}

@@ -10,6 +10,9 @@ import {
   Loader2,
   AlertTriangle,
   Shield,
+  Edit2,
+  Save,
+  X,
 } from "lucide-react";
 
 interface StrategyCard {
@@ -91,7 +94,7 @@ export default function CortexFeed({
         ) : (
           <>
             <Radio className="h-4 w-4" />
-            <span>Inject Simulated Emergency Vector</span>
+            <span>Run Emergency Response Drill</span>
           </>
         )}
       </button>
@@ -113,135 +116,212 @@ export default function CortexFeed({
             </div>
           </div>
         ) : (
-          strategies.map((strat, index) => {
-            const isCritical = strat.strategy.severity === "CRITICAL";
-            const isExecuting = executingIds.has(strat.id);
-
-            return (
-              <div
-                key={strat.id}
-                className="card-animate-in"
-                style={{ animationDelay: `${index * 0.08}s` }}
-              >
-                <div
-                  className={`border rounded-xl p-3.5 transition-all duration-300 bg-slate-900/90 ${
-                    isCritical
-                      ? "border-rose-500/30 shadow-lg shadow-rose-950/10"
-                      : "border-amber-500/30 shadow-lg shadow-amber-950/10"
-                  }`}
-                >
-                  {/* Card header */}
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                            isCritical
-                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                          }`}
-                        >
-                          {isCritical && <AlertTriangle className="h-2.5 w-2.5" />}
-                          {strat.strategy.severity}
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-semibold text-slate-200 mt-1.5 leading-tight">
-                        {strat.strategy.strategy_title}
-                      </h4>
-                    </div>
-                    <span className="text-[10px] text-slate-600 font-mono whitespace-nowrap">
-                      {strat.timestamp}
-                    </span>
-                  </div>
-
-                  {/* Trigger description */}
-                  <p className="text-[11px] text-slate-400 mb-3 bg-slate-950/60 p-2 rounded-lg border border-slate-800/50 leading-relaxed">
-                    <span className="text-slate-500 font-semibold">TRIGGER:</span>{" "}
-                    {strat.description}
-                    <span className="text-slate-600 ml-1">@ {strat.location}</span>
-                  </p>
-
-                  {/* Strategy actions */}
-                  <div className="space-y-2.5 border-t border-slate-800/50 pt-3 mb-3">
-                    {/* Micro Action */}
-                    <div className="flex gap-2.5">
-                      <div className="shrink-0 mt-0.5">
-                        <div className="h-5 w-5 rounded-md bg-emerald-500/10 flex items-center justify-center">
-                          <Zap className="h-3 w-3 text-emerald-400" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[10px] font-bold text-emerald-400/80 tracking-wider block">
-                          MICRO-ACTION
-                        </span>
-                        <span className="text-[11px] text-slate-400 leading-relaxed block">
-                          {strat.strategy.micro_action}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Macro Action */}
-                    <div className="flex gap-2.5">
-                      <div className="shrink-0 mt-0.5">
-                        <div className="h-5 w-5 rounded-md bg-sky-500/10 flex items-center justify-center">
-                          <Navigation className="h-3 w-3 text-sky-400" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[10px] font-bold text-sky-400/80 tracking-wider block">
-                          MACRO-ACTION
-                        </span>
-                        <span className="text-[11px] text-slate-400 leading-relaxed block">
-                          {strat.strategy.macro_action}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Preventative Action */}
-                    <div className="flex gap-2.5">
-                      <div className="shrink-0 mt-0.5">
-                        <div className="h-5 w-5 rounded-md bg-purple-500/10 flex items-center justify-center">
-                          <ShieldAlert className="h-3 w-3 text-purple-400" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[10px] font-bold text-purple-400/80 tracking-wider block">
-                          PREVENTATIVE
-                        </span>
-                        <span className="text-[11px] text-slate-400 leading-relaxed block">
-                          {strat.strategy.preventative_action}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Execute button */}
-                  <button
-                    onClick={() => handleExecute(strat.id)}
-                    disabled={isExecuting}
-                    className={`w-full py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-all border ${
-                      isExecuting
-                        ? "bg-slate-800 text-slate-500 border-slate-700 cursor-wait"
-                        : "bg-slate-800/80 hover:bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 border-slate-700/80 hover:border-emerald-500/40 active:bg-emerald-600/30"
-                    }`}
-                  >
-                    {isExecuting ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <span className="font-mono tracking-wider">DEPLOYING...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        <span>Authorize & Execute Omni-Strategy</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            );
-          })
+          strategies.map((strat, index) => (
+            <StrategyCardItem 
+              key={strat.id} 
+              strat={strat} 
+              index={index}
+              isExecuting={executingIds.has(strat.id)} 
+              onExecute={handleExecute} 
+            />
+          ))
         )}
+      </div>
+    </div>
+  );
+}
+
+function StrategyCardItem({ 
+  strat, 
+  index,
+  isExecuting, 
+  onExecute 
+}: { 
+  strat: StrategyCard; 
+  index: number;
+  isExecuting: boolean; 
+  onExecute: (id: string) => void 
+}) {
+  const isCritical = strat.strategy.severity === "CRITICAL";
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [micro, setMicro] = useState(strat.strategy.micro_action);
+  const [macro, setMacro] = useState(strat.strategy.macro_action);
+  const [prev, setPrev] = useState(strat.strategy.preventative_action);
+
+  // Sync state if the incoming strategy changes (e.g. on hot-reload)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setMicro(strat.strategy.micro_action);
+      setMacro(strat.strategy.macro_action);
+      setPrev(strat.strategy.preventative_action);
+    }
+  }, [strat, isEditing]);
+
+  return (
+    <div
+      className="card-animate-in"
+      style={{ animationDelay: `${index * 0.08}s` }}
+    >
+      <div
+        className={`border rounded-xl p-3.5 transition-all duration-300 bg-slate-900/90 ${
+          isCritical
+            ? "border-rose-500/30 shadow-lg shadow-rose-950/10"
+            : "border-amber-500/30 shadow-lg shadow-amber-950/10"
+        }`}
+      >
+        {/* Card header */}
+        <div className="flex justify-between items-start gap-2 mb-2">
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                  isCritical
+                    ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                }`}
+              >
+                {isCritical && <AlertTriangle className="h-2.5 w-2.5" />}
+                {strat.strategy.severity}
+              </span>
+              <span className="text-[10px] text-slate-600 font-mono whitespace-nowrap">
+                {strat.timestamp}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-1.5">
+              <h4 className="text-sm font-semibold text-slate-200 leading-tight pr-2">
+                {strat.strategy.strategy_title}
+              </h4>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`p-1.5 rounded-md transition-colors border ${
+                  isEditing 
+                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30" 
+                    : "bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 hover:border-slate-500"
+                }`}
+                title={isEditing ? "Save Adjustments" : "Human Override (Edit)"}
+              >
+                {isEditing ? <Save className="h-3 w-3" /> : <Edit2 className="h-3 w-3" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Trigger description */}
+        <p className="text-[11px] text-slate-400 mb-3 bg-slate-950/60 p-2 rounded-lg border border-slate-800/50 leading-relaxed">
+          <span className="text-slate-500 font-semibold">TRIGGER:</span>{" "}
+          {strat.description}
+          <span className="text-slate-600 ml-1">@ {strat.location}</span>
+        </p>
+
+        {/* Strategy actions */}
+        <div className="space-y-2.5 border-t border-slate-800/50 pt-3 mb-3">
+          {/* Micro Action */}
+          <div className="flex gap-2.5">
+            <div className="shrink-0 mt-0.5">
+              <div className="h-5 w-5 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                <Zap className="h-3 w-3 text-emerald-400" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold text-emerald-400/80 tracking-wider block mb-0.5">
+                MICRO-ACTION (LOCAL)
+              </span>
+              {isEditing ? (
+                <textarea
+                  value={micro}
+                  onChange={(e) => setMicro(e.target.value)}
+                  className="w-full bg-slate-950/80 border border-emerald-500/30 rounded p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 resize-none"
+                  rows={2}
+                />
+              ) : (
+                <span className="text-[11px] text-slate-400 leading-relaxed block">
+                  {micro}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Macro Action */}
+          <div className="flex gap-2.5">
+            <div className="shrink-0 mt-0.5">
+              <div className="h-5 w-5 rounded-md bg-sky-500/10 flex items-center justify-center">
+                <Navigation className="h-3 w-3 text-sky-400" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold text-sky-400/80 tracking-wider block mb-0.5">
+                MACRO-ACTION (REGIONAL)
+              </span>
+              {isEditing ? (
+                <textarea
+                  value={macro}
+                  onChange={(e) => setMacro(e.target.value)}
+                  className="w-full bg-slate-950/80 border border-sky-500/30 rounded p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50 resize-none"
+                  rows={2}
+                />
+              ) : (
+                <span className="text-[11px] text-slate-400 leading-relaxed block">
+                  {macro}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Preventative Action */}
+          <div className="flex gap-2.5">
+            <div className="shrink-0 mt-0.5">
+              <div className="h-5 w-5 rounded-md bg-purple-500/10 flex items-center justify-center">
+                <ShieldAlert className="h-3 w-3 text-purple-400" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold text-purple-400/80 tracking-wider block mb-0.5">
+                PREVENTATIVE
+              </span>
+              {isEditing ? (
+                <textarea
+                  value={prev}
+                  onChange={(e) => setPrev(e.target.value)}
+                  className="w-full bg-slate-950/80 border border-purple-500/30 rounded p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 resize-none"
+                  rows={2}
+                />
+              ) : (
+                <span className="text-[11px] text-slate-400 leading-relaxed block">
+                  {prev}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Execute button */}
+        <button
+          onClick={() => {
+            if (isEditing) setIsEditing(false);
+            onExecute(strat.id);
+          }}
+          disabled={isExecuting}
+          className={`w-full py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-all border ${
+            isExecuting
+              ? "bg-slate-800 text-slate-500 border-slate-700 cursor-wait"
+              : isEditing 
+                ? "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                : "bg-slate-800/80 hover:bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 border-slate-700/80 hover:border-emerald-500/40 active:bg-emerald-600/30"
+          }`}
+        >
+          {isExecuting ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span className="font-mono tracking-wider">DEPLOYING...</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-3.5 w-3.5" />
+              <span>{isEditing ? "Save Overrides & Execute" : "Authorize & Execute Omni-Strategy"}</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
