@@ -20,7 +20,7 @@ interface AntiStampedeModalProps {
   onConfirm: () => Promise<void>;
 }
 
-const API = "http://127.0.0.1:8000";
+const API = typeof window !== "undefined" ? `http://${window.location.hostname}:8000` : "http://127.0.0.1:8000";
 
 const LOCKDOWN_ACTIONS = [
   {
@@ -141,12 +141,22 @@ export default function AntiStampedeModal({
     "confirm"
   );
   const [executedActions, setExecutedActions] = useState<number[]>([]);
+  const [selectedActions, setSelectedActions] = useState<number[]>(
+    LOCKDOWN_ACTIONS.map((_, i) => i)
+  );
   const [timeLeft, setTimeLeft] = useState(5);
 
   const resetState = () => {
     setPhase("confirm");
     setExecutedActions([]);
+    setSelectedActions(LOCKDOWN_ACTIONS.map((_, i) => i));
     setTimeLeft(5);
+  };
+
+  const toggleAction = (index: number) => {
+    setSelectedActions((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
   };
 
   const handleClose = () => {
@@ -157,12 +167,14 @@ export default function AntiStampedeModal({
   const handleExecute = async () => {
     setPhase("executing");
 
-    // Execute each action sequentially with a backend broadcast per step
+    // Execute each selected action sequentially with a backend broadcast per step
     for (let i = 0; i < LOCKDOWN_ACTIONS.length; i++) {
-      // Fire the broadcast for this specific action
-      await postBroadcast(LOCKDOWN_ACTIONS[i].broadcast);
-      await new Promise((r) => setTimeout(r, 800));
-      setExecutedActions((prev) => [...prev, i]);
+      if (selectedActions.includes(i)) {
+        // Fire the broadcast for this specific action
+        await postBroadcast(LOCKDOWN_ACTIONS[i].broadcast);
+        await new Promise((r) => setTimeout(r, 800));
+        setExecutedActions((prev) => [...prev, i]);
+      }
     }
 
     // Finally call the main backend override (flush densities + log lockdown)
@@ -234,40 +246,56 @@ export default function AntiStampedeModal({
         {/* ── Scrollable body ── */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
 
-          {/* CONFIRM phase */}
           {phase === "confirm" && (
             <div className="space-y-4">
               <p className="text-xs sm:text-sm text-slate-400 font-mono leading-relaxed">
-                This will immediately deploy{" "}
-                <span className="text-rose-400 font-bold">
-                  6 simultaneous emergency protocols
-                </span>{" "}
-                and send a broadcast to each responsible field team.
+                Select the emergency protocols to deploy. Each selected protocol will send an immediate broadcast to the responsible field team.
               </p>
 
               <div className="space-y-2">
-                {LOCKDOWN_ACTIONS.map((action, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-start gap-3 p-2.5 rounded-lg border bg-slate-900/60 ${action.bg}`}
-                  >
-                    <div className="flex-shrink-0 mt-0.5">{action.icon}</div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold text-slate-300 font-mono">
-                        {action.title}
-                      </p>
-                      <p className="text-[10px] text-slate-500 font-mono mt-0.5 leading-relaxed">
-                        {action.desc}
-                      </p>
-                      <p className="text-[9px] text-slate-600 font-mono mt-1">
-                        📡 Broadcasts to:{" "}
-                        <span className="text-slate-500">
-                          {action.broadcast.target}
-                        </span>
-                      </p>
+                {LOCKDOWN_ACTIONS.map((action, i) => {
+                  const isSelected = selectedActions.includes(i);
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => toggleAction(i)}
+                      className={`flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                        isSelected
+                          ? action.bg
+                          : "border-slate-800 bg-slate-900/40 opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div
+                          className={`h-4 w-4 rounded flex items-center justify-center border transition-colors ${
+                            isSelected
+                              ? "bg-rose-500 border-rose-500"
+                              : "border-slate-600 bg-slate-800"
+                          }`}
+                        >
+                          {isSelected && (
+                            <CheckCircle className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 mt-0.5">{action.icon}</div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-[11px] font-bold font-mono transition-colors ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                          {action.title}
+                        </p>
+                        <p className={`text-[10px] font-mono mt-0.5 leading-relaxed transition-colors ${isSelected ? "text-slate-500" : "text-slate-600"}`}>
+                          {action.desc}
+                        </p>
+                        <p className={`text-[9px] font-mono mt-1 transition-colors ${isSelected ? "text-slate-600" : "text-slate-700"}`}>
+                          📡 Broadcasts to:{" "}
+                          <span className={isSelected ? "text-slate-500" : "text-slate-600"}>
+                            {action.broadcast.target}
+                          </span>
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -339,7 +367,7 @@ export default function AntiStampedeModal({
                 LOCKDOWN EXECUTED
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 font-mono leading-relaxed">
-                All 6 protocols deployed. 6 field broadcasts sent.
+                {executedActions.length} protocol(s) deployed. {executedActions.length} field broadcasts sent.
                 <br />
                 Crowd density is reducing across all sectors.
               </p>
@@ -361,10 +389,11 @@ export default function AntiStampedeModal({
             </button>
             <button
               onClick={handleExecute}
-              className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-900/40 border border-rose-500"
+              disabled={selectedActions.length === 0}
+              className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-900 disabled:opacity-50 text-white text-xs sm:text-sm font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-900/40 border border-rose-500 disabled:border-rose-900"
             >
               <Shield className="h-4 w-4" />
-              EXECUTE LOCKDOWN
+              EXECUTE {selectedActions.length} PROTOCOL(S)
             </button>
           </div>
         )}

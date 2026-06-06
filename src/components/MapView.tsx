@@ -159,6 +159,13 @@ export default function MapView({ telemetryData, onManualOverride }: MapViewProp
                 <animate attributeName="x" from="0" to="20" dur="1.5s" repeatCount="indefinite" />
               </rect>
             </pattern>
+
+            {/* Density clip paths for sectors */}
+            {sectorsGeo.map((geo) => (
+              <clipPath id={`clip-${geo.id}`} key={`clip-${geo.id}`}>
+                <circle cx={geo.x} cy={geo.y} r={geo.radius - 2} />
+              </clipPath>
+            ))}
           </defs>
 
           {/* Ambient grid lines */}
@@ -309,9 +316,6 @@ export default function MapView({ telemetryData, onManualOverride }: MapViewProp
                     />
 
                     {/* Fill based on density */}
-                    <clipPath id={`clip-${geo.id}`}>
-                      <circle cx={geo.x} cy={geo.y} r={geo.radius - 2} />
-                    </clipPath>
                     <rect
                       x={geo.x - geo.radius}
                       y={geo.y + geo.radius - (density / 100) * (geo.radius * 2)}
@@ -328,17 +332,17 @@ export default function MapView({ telemetryData, onManualOverride }: MapViewProp
                       y={geo.y - 6}
                       textAnchor="middle"
                       fill="#f1f5f9"
-                      className="text-[10px] font-mono font-bold"
+                      className="text-[9px] font-mono font-bold uppercase tracking-wider"
                       style={{ pointerEvents: "none" }}
                     >
-                      {liveData ? liveData.name : "..."}
+                      {liveData ? liveData.name.replace(" Sector", "") : "..."}
                     </text>
                     <text
                       x={geo.x}
                       y={geo.y + 10}
                       textAnchor="middle"
                       fill={strokeColor}
-                      className="text-[11px] font-mono font-bold"
+                      className="text-[12px] font-mono font-bold tracking-wider"
                       style={{ pointerEvents: "none" }}
                     >
                       {density.toFixed(1)}%

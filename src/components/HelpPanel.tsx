@@ -122,7 +122,7 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                     },
                     {
                       title: "Command Dashboard",
-                      desc: "Next.js frontend polls every 2.5s, rendering dual-scale tactical maps, time-series analytics, and actionable AI strategy cards.",
+                      desc: "Next.js frontend polls every 2.5s, rendering dual-scale tactical maps, time-series analytics, customizable lockdown protocols, and an integrated field broadcast network. Fully responsive and network-accessible for cross-device testing.",
                       color: "emerald",
                       icon: Map,
                     },
@@ -321,6 +321,12 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                     <div className="flex items-start gap-2">
                       <ChevronRight className="h-3 w-3 text-slate-600 shrink-0 mt-0.5" />
                       <span className="text-slate-400">
+                        <strong className="text-slate-300">Stampede Probability:</strong> Global AI-computed index (0-100%) indicating immediate risk of crowd collapse
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <ChevronRight className="h-3 w-3 text-slate-600 shrink-0 mt-0.5" />
+                      <span className="text-slate-400">
                         <strong className="text-slate-300">Connection:</strong> LINKED (connected to backend) or SEVERED (connection lost)
                       </span>
                     </div>
@@ -362,12 +368,15 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                   </h4>
                   <div className="space-y-2 text-[10px] text-slate-400">
                     <p className="leading-relaxed">
-                      <strong className="text-rose-400">Sector Density Stream (Left Chart):</strong> Real-time area chart showing 
+                      <strong className="text-rose-400">Sector Density Stream (Top Left Chart):</strong> Real-time area chart showing 
                       density % over the last 20 data points (~50 seconds) for all 4 sectors. The red dashed line at 85% marks 
                       the CRITICAL threshold. The amber dashed line at 75% marks WARNING.
                     </p>
                     <p className="leading-relaxed">
-                      <strong className="text-sky-400">Hub Load Distribution (Right Chart):</strong> Bar chart showing current 
+                      <strong className="text-amber-400">Surge Velocity (Middle Chart):</strong> Line chart tracking the rate-of-change of crowd density. Spikes indicate dangerous rapid accumulation even if total density is still below critical levels.
+                    </p>
+                    <p className="leading-relaxed">
+                      <strong className="text-sky-400">Hub Load Distribution (Bottom Chart):</strong> Bar chart showing current 
                       capacity utilization (%) for each satellite hub. Bars change color based on load level.
                     </p>
                   </div>
@@ -392,6 +401,22 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                       <strong className="text-emerald-400">Execute Button:</strong> Authorizes and deploys the strategy. 
                       The backend simulates remediation (crowd density drops, hub pressure eased), the card disappears, 
                       and the resolved counter increments.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Field Broadcast & Override */}
+                <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4">
+                  <h4 className="text-[11px] font-bold text-slate-200 mb-2 flex items-center gap-2">
+                    <Radio className="h-3.5 w-3.5 text-emerald-400" />
+                    Field Communications & Override
+                  </h4>
+                  <div className="space-y-2 text-[10px] text-slate-400">
+                    <p className="leading-relaxed">
+                      <strong className="text-emerald-400">Field Broadcast Network:</strong> Integrated radio panel to send targeted messages (Emergency, Resource, Info) to specific field teams. Features a live server-synced broadcast log.
+                    </p>
+                    <p className="leading-relaxed">
+                      <strong className="text-rose-400">Customizable Anti-Stampede Lockdown:</strong> A massive red override button that triggers a customizable checklist of 6 emergency protocols. Select specific actions (e.g., Hub Flush, Medical Dispatch) to deploy targeted broadcasts and system-wide density reductions instantly.
                     </p>
                   </div>
                 </div>
@@ -439,12 +464,18 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                   },
                   {
                     step: "5",
-                    title: "Execute the Strategy",
-                    desc: "Click 'Authorize & Execute Omni-Strategy'. Watch the density drop on the tactical map, the RESOLVED counter increment in the status bar, and the card disappear. You just resolved a crisis!",
-                    tip: "Inject multiple incidents to show the system handling concurrent crises with different severity levels.",
+                    title: "Deploy Custom Lockdown",
+                    desc: "Click the red 'ANTI-STAMPEDE LOCKDOWN' button. Toggle the exact emergency protocols needed for the current situation (e.g., disable 'Hub Flush' if the issue is only at the Ghats), and hit Execute to send targeted field broadcasts.",
+                    tip: "Show judges how the checkboxes allow for a flexible, tailored response rather than a rigid hardcoded sequence.",
                   },
                   {
                     step: "6",
+                    title: "Send Field Broadcast",
+                    desc: "Use the Field Broadcast Network panel to dispatch a targeted message (e.g., 'Deploy medical kits to Sector 2'). The message posts to the backend and appears in the real-time server log.",
+                    tip: "This demonstrates complete end-to-end communication capabilities within the command center.",
+                  },
+                  {
+                    step: "7",
                     title: "Demonstrate Scale",
                     desc: "Inject 3-4 incidents rapidly to show the system handling multiple concurrent crises. Each gets a unique AI strategy. Execute them one by one, showing how each resolution stabilizes different sectors.",
                     tip: "The CRITICAL threat level badge will pulse red — perfect for showing the system under maximum pressure.",
@@ -493,6 +524,10 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                   <li className="flex items-start gap-2">
                     <ChevronRight className="h-3 w-3 text-sky-500 shrink-0 mt-0.5" />
                     <span><strong className="text-slate-300">Graceful Degradation</strong> — If OpenAI API fails, the system seamlessly falls back to a pool of pre-generated strategies so the demo never breaks.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-3 w-3 text-sky-500 shrink-0 mt-0.5" />
+                    <span><strong className="text-slate-300">Network Topology Ready</strong> — The frontend dynamically binds to the host IP, allowing judges to test the dashboard directly on their mobile phones by connecting to the local Wi-Fi.</span>
                   </li>
                 </ul>
               </div>

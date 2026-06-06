@@ -24,6 +24,7 @@ import {
   fetchHistory,
   triggerSimulatedIncident,
   executeOmniStrategy,
+  API_BASE_URL,
 } from "@/lib/api";
 
 interface SystemStatus {
@@ -136,7 +137,7 @@ export default function Dashboard() {
 
   const executeAntiStampede = async () => {
     try {
-      await fetch("http://127.0.0.1:8000/api/manual-override", {
+      await fetch(`${API_BASE_URL}/api/manual-override`, {
         method: "POST",
       });
       await fetchAll();
