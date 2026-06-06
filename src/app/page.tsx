@@ -88,7 +88,7 @@ export default function Dashboard() {
   // Automated Spontaneous Alerts Loop
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    
+
     const triggerAutoEvent = async () => {
       try {
         await triggerSimulatedIncident();
@@ -96,7 +96,7 @@ export default function Dashboard() {
       } catch (e) {
         console.error("Auto-incident error", e);
       }
-      
+
       // Schedule next event (45s to 90s interval for variety)
       const nextDelay = Math.random() * 45000 + 45000;
       timeoutId = setTimeout(triggerAutoEvent, nextDelay);
@@ -205,9 +205,7 @@ export default function Dashboard() {
           </div>
           <h1 className="text-sm font-bold tracking-[0.2em] font-mono">
             KUMBH-CORTEX{" "}
-            <span className="text-slate-600 font-light tracking-wider">
-              // OMNI-FLOW
-            </span>
+
           </h1>
         </div>
 
@@ -311,8 +309,8 @@ export default function Dashboard() {
           <div className="rounded-xl border border-slate-800/80 bg-slate-900/30 relative overflow-hidden h-[450px] lg:h-[550px] scan-line-overlay">
             {/* Interactive SVG Map Component */}
             <div className="absolute inset-0 z-0">
-              <MapView 
-                telemetryData={telemetry} 
+              <MapView
+                telemetryData={telemetry}
                 onManualOverride={handleManualOverride}
               />
             </div>
