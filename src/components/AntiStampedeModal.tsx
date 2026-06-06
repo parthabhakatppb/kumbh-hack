@@ -20,8 +20,7 @@ interface AntiStampedeModalProps {
   onConfirm: () => Promise<void>;
 }
 
-const API = typeof window !== "undefined" ? `http://${window.location.hostname}:8000` : "http://127.0.0.1:8000";
-
+import { API_BASE_URL as API } from "@/lib/api";
 const LOCKDOWN_ACTIONS = [
   {
     icon: <Lock className="h-4 w-4 text-rose-400" />,

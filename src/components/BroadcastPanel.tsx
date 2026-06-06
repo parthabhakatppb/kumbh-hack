@@ -14,8 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const API = typeof window !== "undefined" ? `http://${window.location.hostname}:8000` : "http://127.0.0.1:8000";
-
+import { API_BASE_URL as API } from "@/lib/api";
 interface ServerBroadcast {
   id: string;
   message: string;

@@ -1,6 +1,21 @@
-export const API_BASE_URL = typeof window !== "undefined"
-  ? `http://${window.location.hostname}:8000`
-  : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== "undefined") {
+    // If running on localhost or a local IP (e.g. 192.168.x.x), use port 8000 for the Python backend
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)
+    ) {
+      return `http://${window.location.hostname}:8000`;
+    }
+    // If deployed on a real domain (like Render), use the same origin without hardcoding port 8000
+    return window.location.origin;
+  }
+  return "http://127.0.0.1:8000";
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 export async function fetchTelemetryVitals() {
   try {
