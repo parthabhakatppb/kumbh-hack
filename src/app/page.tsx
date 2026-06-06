@@ -16,6 +16,8 @@ import MapView from "@/components/MapView";
 import CortexFeed from "@/components/CortexFeed";
 import MetricsPanel from "@/components/MetricsPanel";
 import HelpPanel from "@/components/HelpPanel";
+import BroadcastPanel from "@/components/BroadcastPanel";
+import AntiStampedeModal from "@/components/AntiStampedeModal";
 import {
   fetchTelemetryVitals,
   fetchSystemStatus,
@@ -47,7 +49,9 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isTriggering, setIsTriggering] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected">("disconnected");
-  const [isHelpOpen, setIsHelpOpen] = useState(true); // Open by default
+  const [isHelpOpen, setIsHelpOpen] = useState(true);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  const [isLockdownOpen, setIsLockdownOpen] = useState(false);
   const prevStrategiesCount = useRef(0);
 
   const fetchAll = useCallback(async () => {
@@ -126,6 +130,11 @@ export default function Dashboard() {
   };
 
   const handleManualOverride = async () => {
+    // Open the confirmation modal first
+    setIsLockdownOpen(true);
+  };
+
+  const executeAntiStampede = async () => {
     try {
       await fetch("http://127.0.0.1:8000/api/manual-override", {
         method: "POST",
@@ -216,6 +225,13 @@ export default function Dashboard() {
             <span>2.5 HZ</span>
           </div>
           {/* Help Button */}
+          <button
+            onClick={() => setIsBroadcastOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-all font-bold tracking-wider"
+            title="Field Broadcast"
+          >
+            <span className="text-[11px] font-mono">📡 BROADCAST</span>
+          </button>
           <button
             onClick={() => setIsHelpOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-bold tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]"
@@ -321,6 +337,20 @@ export default function Dashboard() {
 
       {/* Help Panel Modal */}
       <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      {/* Broadcast Panel */}
+      <BroadcastPanel
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+        threatLevel={systemStatus?.threat_level ?? "NORMAL"}
+      />
+
+      {/* Anti-Stampede Lockdown Modal */}
+      <AntiStampedeModal
+        isOpen={isLockdownOpen}
+        onClose={() => setIsLockdownOpen(false)}
+        onConfirm={executeAntiStampede}
+      />
     </div>
   );
 }
