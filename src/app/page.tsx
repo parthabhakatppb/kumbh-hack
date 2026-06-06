@@ -47,7 +47,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isTriggering, setIsTriggering] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected">("disconnected");
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(true); // Open by default
   const prevStrategiesCount = useRef(0);
 
   const fetchAll = useCallback(async () => {
@@ -67,10 +67,11 @@ export default function Dashboard() {
         setHistory(historyRes.history);
       }
       setConnectionStatus("connected");
-      setIsLoading(false);
     } catch (err) {
       console.error("Telemetry link decoupled:", err);
       setConnectionStatus("disconnected");
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -184,10 +185,11 @@ export default function Dashboard() {
           {/* Help Button */}
           <button
             onClick={() => setIsHelpOpen(true)}
-            className="h-7 w-7 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-bold tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]"
             title="Command Guide"
           >
             <HelpCircle className="h-3.5 w-3.5" />
+            COMMAND GUIDE
           </button>
         </div>
       </header>
