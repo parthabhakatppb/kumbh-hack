@@ -204,8 +204,7 @@ export default function Dashboard() {
             <div className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
           <h1 className="text-sm font-bold tracking-[0.2em] font-mono">
-            KUMBH-CORTEX{" "}
-
+            KUMBH-CORTEX
           </h1>
         </div>
 

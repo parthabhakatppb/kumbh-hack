@@ -91,8 +91,8 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                   Mission Statement
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  <strong className="text-slate-100">Kumbh-Cortex Omni-Flow</strong> is a predictive,
-                  AI-powered Command Center for the <strong className="text-sky-400">Ujjain Mahakumbh 2028</strong> — 
+                  <strong className="text-slate-100">Kumbh-Cortex</strong> is a predictive,
+                  AI-driven tactical command interface designed for the{" "}<strong className="text-sky-400">Ujjain Mahakumbh 2028</strong> — 
                   a mega-event expecting <strong className="text-amber-400">300 million pilgrims</strong>. 
                   Instead of just showing alerts, this system uses real-time crowd telemetry, 
                   feeds incidents to an AI reasoning engine (GPT-4o-mini), and outputs complete, 
@@ -502,9 +502,9 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
 
         {/* Footer */}
         <div className="px-6 py-3 border-t border-slate-800 flex items-center justify-between shrink-0">
-          <span className="text-[9px] font-mono text-slate-600">
-            KUMBH-CORTEX OMNI-FLOW v1.0 — MAHAKUMBH 2028 COMMAND CENTER
-          </span>
+          <p className="text-center text-[10px] text-slate-600 font-mono tracking-wider">
+            KUMBH-CORTEX v1.0 — MAHAKUMBH 2028 COMMAND CENTER
+          </p>
           <button
             onClick={onClose}
             className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg border border-slate-700 transition-all"
