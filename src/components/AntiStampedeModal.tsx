@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  AlertTriangle,
   X,
   Shield,
   CheckCircle,
@@ -21,71 +20,163 @@ interface AntiStampedeModalProps {
   onConfirm: () => Promise<void>;
 }
 
+const API = "http://127.0.0.1:8000";
+
 const LOCKDOWN_ACTIONS = [
   {
     icon: <Lock className="h-4 w-4 text-rose-400" />,
     title: "Entry Lockdown",
-    desc: "Seal all inbound access points to Ram Ghat, Mahakal & Sangam sectors. Zero new pilgrim entry.",
-    bg: "bg-rose-500/5 border-rose-500/20",
+    desc: "Seal all inbound access points to Ram Ghat, Mahakal & Sangam sectors.",
+    broadcast: {
+      message:
+        "🔴 ENTRY LOCKDOWN ACTIVATED — Seal all inbound access points. Zero new pilgrim entry to Sectors 1-3. Implement immediately.",
+      target: "ALL GROUND UNITS",
+      priority: "critical",
+      broadcast_type: "lockdown",
+    },
+    bg: "border-rose-500/20",
+    activeBg: "border-rose-500/50 bg-rose-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     icon: <Navigation className="h-4 w-4 text-amber-400" />,
     title: "Emergency Diversion",
-    desc: "Activate Route Epsilon & Zeta diversions. Redirect all pedestrian traffic to Dhar Holding Hub.",
-    bg: "bg-amber-500/5 border-amber-500/20",
+    desc: "Activate Route Epsilon & Zeta. Redirect pedestrian traffic to Dhar Holding Hub.",
+    broadcast: {
+      message:
+        "⚠️ ROUTE DIVERSION ACTIVE — Activate Route Epsilon & Zeta. Redirect ALL pedestrian flow to Dhar Holding Hub. Block eastern entry.",
+      target: "Traffic Control Units",
+      priority: "critical",
+      broadcast_type: "emergency",
+    },
+    bg: "border-amber-500/20",
+    activeBg: "border-amber-500/50 bg-amber-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     icon: <Users className="h-4 w-4 text-sky-400" />,
     title: "Crowd Thinning Protocol",
-    desc: "Deploy barrier teams to create movement corridors. Enforce 1-way flow across all 4 sectors.",
-    bg: "bg-sky-500/5 border-sky-500/20",
+    desc: "Deploy barrier teams. Enforce 1-way flow across all 4 sectors.",
+    broadcast: {
+      message:
+        "👥 CROWD THINNING — Deploy barriers NOW. Enforce single-direction flow in all 4 sectors. No counter-flow permitted.",
+      target: "Barrier & Barricade Crew",
+      priority: "critical",
+      broadcast_type: "emergency",
+    },
+    bg: "border-sky-500/20",
+    activeBg: "border-sky-500/50 bg-sky-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     icon: <Radio className="h-4 w-4 text-purple-400" />,
     title: "Ground Alert Broadcast",
-    desc: "Auto-broadcast CRITICAL alert to all field units. MRT teams placed on standby.",
-    bg: "bg-purple-500/5 border-purple-500/20",
+    desc: "Alert all field units. MRT teams on standby, medics deploy.",
+    broadcast: {
+      message:
+        "🚨 ALL UNITS ALERT — ANTI-STAMPEDE LOCKDOWN IN EFFECT. Medical response teams to standby positions. Report status immediately.",
+      target: "Medical Response Teams",
+      priority: "critical",
+      broadcast_type: "emergency",
+    },
+    bg: "border-purple-500/20",
+    activeBg: "border-purple-500/50 bg-purple-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     icon: <Volume2 className="h-4 w-4 text-emerald-400" />,
     title: "PA System Announcement",
-    desc: "Trigger public address system across all zones: calm evacuation instructions in 5 languages.",
-    bg: "bg-emerald-500/5 border-emerald-500/20",
+    desc: "Calm evacuation instructions broadcast in 5 languages via PA.",
+    broadcast: {
+      message:
+        "📢 PA SYSTEM — Initiate calm evacuation announcement in Hindi, English, Marathi, Gujarati & Bengali. Repeat every 90 seconds.",
+      target: "Alpha Team (Ram Ghat)",
+      priority: "urgent",
+      broadcast_type: "info",
+    },
+    bg: "border-emerald-500/20",
+    activeBg: "border-emerald-500/50 bg-emerald-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     icon: <Zap className="h-4 w-4 text-yellow-400" />,
     title: "Hub Flush Command",
-    desc: "Force-clear transit hub queues. Priority boarding to outbound buses. Density drop target: 40%.",
-    bg: "bg-yellow-500/5 border-yellow-500/20",
+    desc: "Force-clear transit queues. Priority boarding to outbound buses.",
+    broadcast: {
+      message:
+        "🚌 HUB FLUSH ORDER — Clear all transit queues immediately. Priority outbound boarding. Target: 40% density reduction in 15 mins.",
+      target: "Traffic Control Units",
+      priority: "urgent",
+      broadcast_type: "resource",
+    },
+    bg: "border-yellow-500/20",
+    activeBg: "border-yellow-500/50 bg-yellow-500/10",
+    doneBg: "border-emerald-500/30 bg-emerald-500/5",
   },
 ];
 
-export default function AntiStampedeModal({ isOpen, onClose, onConfirm }: AntiStampedeModalProps) {
-  const [phase, setPhase] = useState<"confirm" | "executing" | "done">("confirm");
+async function postBroadcast(payload: {
+  message: string;
+  target: string;
+  priority: string;
+  broadcast_type: string;
+}) {
+  try {
+    await fetch(`${API}/api/broadcast`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    // Non-critical — continue lockdown even if broadcast fails
+  }
+}
+
+export default function AntiStampedeModal({
+  isOpen,
+  onClose,
+  onConfirm,
+}: AntiStampedeModalProps) {
+  const [phase, setPhase] = useState<"confirm" | "executing" | "done">(
+    "confirm"
+  );
   const [executedActions, setExecutedActions] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(5);
 
+  const resetState = () => {
+    setPhase("confirm");
+    setExecutedActions([]);
+    setTimeLeft(5);
+  };
+
+  const handleClose = () => {
+    onClose();
+    setTimeout(resetState, 300);
+  };
+
   const handleExecute = async () => {
     setPhase("executing");
-    // Animate each action one by one
+
+    // Execute each action sequentially with a backend broadcast per step
     for (let i = 0; i < LOCKDOWN_ACTIONS.length; i++) {
-      await new Promise((r) => setTimeout(r, 700));
+      // Fire the broadcast for this specific action
+      await postBroadcast(LOCKDOWN_ACTIONS[i].broadcast);
+      await new Promise((r) => setTimeout(r, 800));
       setExecutedActions((prev) => [...prev, i]);
     }
-    // Call actual backend override
+
+    // Finally call the main backend override (flush densities + log lockdown)
     await onConfirm();
     setPhase("done");
-    // Start countdown to auto-close
+
+    // Countdown auto-close
     let t = 5;
     const countdown = setInterval(() => {
       t--;
       setTimeLeft(t);
       if (t <= 0) {
         clearInterval(countdown);
-        onClose();
-        setPhase("confirm");
-        setExecutedActions([]);
-        setTimeLeft(5);
+        handleClose();
       }
     }, 1000);
   };
@@ -93,79 +184,95 @@ export default function AntiStampedeModal({ isOpen, onClose, onConfirm }: AntiSt
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      {/* Backdrop with red tint for critical emphasis */}
-      <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
+    /* Full-screen overlay */
+    <div className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-6">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm"
+        onClick={phase !== "executing" ? handleClose : undefined}
+      />
       {phase === "executing" && (
-        <div className="absolute inset-0 bg-rose-950/10 animate-pulse pointer-events-none" />
+        <div className="fixed inset-0 bg-rose-950/10 animate-pulse pointer-events-none" />
       )}
 
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-xl rounded-2xl border border-rose-500/40 bg-slate-900 shadow-2xl shadow-rose-900/30 overflow-hidden">
-        {/* Danger header */}
-        <div className={`px-5 py-4 border-b border-rose-500/30 ${phase === "executing" ? "bg-rose-950/40" : "bg-rose-500/5"}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-rose-400" />
-              </div>
-              <div>
-                <h2 className="font-bold text-base font-mono tracking-wider text-rose-300">
-                  ANTI-STAMPEDE LOCKDOWN
-                </h2>
-                <p className="text-[10px] text-rose-600 font-mono">
-                  {phase === "confirm" && "⚠ This will immediately override all sector operations"}
-                  {phase === "executing" && "🔴 EXECUTING LOCKDOWN PROTOCOL — DO NOT INTERRUPT"}
-                  {phase === "done" && "✓ LOCKDOWN COMPLETE — System stabilized"}
-                </p>
-              </div>
+      {/* Modal card — responsive max-width, scrollable */}
+      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-rose-500/40 bg-slate-900 shadow-2xl shadow-rose-900/40 flex flex-col my-4 sm:my-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] overflow-hidden">
+
+        {/* ── Header ── */}
+        <div
+          className={`flex-shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-rose-500/30 ${
+            phase === "executing" ? "bg-rose-950/40" : "bg-rose-500/5"
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-rose-400" />
             </div>
-            {phase !== "executing" && (
-              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 transition-colors">
-                <X className="h-4 w-4" />
-              </button>
-            )}
+            <div className="min-w-0">
+              <h2 className="font-bold text-sm sm:text-base font-mono tracking-wider text-rose-300 truncate">
+                ANTI-STAMPEDE LOCKDOWN
+              </h2>
+              <p className="text-[9px] sm:text-[10px] text-rose-600 font-mono truncate">
+                {phase === "confirm" &&
+                  "⚠ Overrides all sector operations immediately"}
+                {phase === "executing" &&
+                  "🔴 EXECUTING — DO NOT CLOSE THIS WINDOW"}
+                {phase === "done" && "✓ LOCKDOWN COMPLETE — System stabilized"}
+              </p>
+            </div>
           </div>
+          {phase !== "executing" && (
+            <button
+              onClick={handleClose}
+              className="flex-shrink-0 p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <div className="p-5">
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+
+          {/* CONFIRM phase */}
           {phase === "confirm" && (
-            <>
-              <p className="text-sm text-slate-400 mb-4 font-mono leading-relaxed">
-                Executing this command will immediately deploy{" "}
-                <span className="text-rose-400 font-bold">6 simultaneous emergency protocols</span>{" "}
-                across all micro-sectors and transit hubs. This action is intended for{" "}
-                <span className="text-amber-400">imminent stampede prevention</span>.
+            <div className="space-y-4">
+              <p className="text-xs sm:text-sm text-slate-400 font-mono leading-relaxed">
+                This will immediately deploy{" "}
+                <span className="text-rose-400 font-bold">
+                  6 simultaneous emergency protocols
+                </span>{" "}
+                and send a broadcast to each responsible field team.
               </p>
-              <div className="space-y-2 mb-5">
+
+              <div className="space-y-2">
                 {LOCKDOWN_ACTIONS.map((action, i) => (
-                  <div key={i} className={`flex items-start gap-3 p-2.5 rounded-lg border ${action.bg}`}>
-                    <div className="mt-0.5">{action.icon}</div>
-                    <div>
-                      <p className="text-[11px] font-bold text-slate-300 font-mono">{action.title}</p>
-                      <p className="text-[10px] text-slate-500 font-mono mt-0.5 leading-relaxed">{action.desc}</p>
+                  <div
+                    key={i}
+                    className={`flex items-start gap-3 p-2.5 rounded-lg border bg-slate-900/60 ${action.bg}`}
+                  >
+                    <div className="flex-shrink-0 mt-0.5">{action.icon}</div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-slate-300 font-mono">
+                        {action.title}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-mono mt-0.5 leading-relaxed">
+                        {action.desc}
+                      </p>
+                      <p className="text-[9px] text-slate-600 font-mono mt-1">
+                        📡 Broadcasts to:{" "}
+                        <span className="text-slate-500">
+                          {action.broadcast.target}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="flex-1 py-2.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 text-sm font-mono font-bold transition-all"
-                >
-                  CANCEL
-                </button>
-                <button
-                  onClick={handleExecute}
-                  className="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-sm font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-900/40 border border-rose-500"
-                >
-                  <Shield className="h-4 w-4" />
-                  EXECUTE LOCKDOWN
-                </button>
-              </div>
-            </>
+            </div>
           )}
 
+          {/* EXECUTING phase */}
           {phase === "executing" && (
             <div className="space-y-2">
               {LOCKDOWN_ACTIONS.map((action, i) => {
@@ -174,15 +281,15 @@ export default function AntiStampedeModal({ isOpen, onClose, onConfirm }: AntiSt
                 return (
                   <div
                     key={i}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all duration-500 ${
+                    className={`flex items-center gap-3 p-2.5 sm:p-3 rounded-lg border transition-all duration-500 ${
                       done
-                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        ? action.doneBg
                         : active
-                        ? "border-rose-500/40 bg-rose-500/10 animate-pulse"
-                        : "border-slate-800 bg-slate-900/50 opacity-40"
+                        ? action.activeBg + " animate-pulse"
+                        : "border-slate-800 bg-slate-900/40 opacity-40"
                     }`}
                   >
-                    <div>
+                    <div className="flex-shrink-0">
                       {done ? (
                         <CheckCircle className="h-4 w-4 text-emerald-400" />
                       ) : active ? (
@@ -191,29 +298,76 @@ export default function AntiStampedeModal({ isOpen, onClose, onConfirm }: AntiSt
                         action.icon
                       )}
                     </div>
-                    <p className={`text-[11px] font-bold font-mono ${done ? "text-emerald-400" : active ? "text-rose-300" : "text-slate-600"}`}>
-                      {done ? `✓ ${action.title} — ACTIVE` : active ? `DEPLOYING: ${action.title}...` : action.title}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-[11px] font-bold font-mono truncate ${
+                          done
+                            ? "text-emerald-400"
+                            : active
+                            ? "text-rose-300"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        {done
+                          ? `✓ ${action.title} — ACTIVE`
+                          : active
+                          ? `DEPLOYING: ${action.title}...`
+                          : action.title}
+                      </p>
+                      {(done || active) && (
+                        <p className="text-[9px] text-slate-600 font-mono mt-0.5">
+                          📡{" "}
+                          {done
+                            ? `Broadcast sent → ${action.broadcast.target}`
+                            : `Sending broadcast → ${action.broadcast.target}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
           )}
 
+          {/* DONE phase */}
           {phase === "done" && (
             <div className="text-center py-4">
-              <div className="h-16 w-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-emerald-400" />
+              <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-bold font-mono text-emerald-400 mb-2">LOCKDOWN EXECUTED</h3>
-              <p className="text-sm text-slate-400 font-mono">
-                All 6 protocols are active. Crowd density is being reduced.<br />
-                Ground teams have been notified.
+              <h3 className="text-base sm:text-lg font-bold font-mono text-emerald-400 mb-2">
+                LOCKDOWN EXECUTED
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 font-mono leading-relaxed">
+                All 6 protocols deployed. 6 field broadcasts sent.
+                <br />
+                Crowd density is reducing across all sectors.
               </p>
-              <p className="text-xs text-slate-600 font-mono mt-4">Auto-closing in {timeLeft}s...</p>
+              <div className="mt-4 text-[10px] text-slate-600 font-mono">
+                Auto-closing in {timeLeft}s
+              </div>
             </div>
           )}
         </div>
+
+        {/* ── Footer buttons (only in confirm phase) ── */}
+        {phase === "confirm" && (
+          <div className="flex-shrink-0 flex gap-3 px-4 sm:px-5 py-3 sm:py-4 border-t border-slate-800">
+            <button
+              onClick={handleClose}
+              className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 hover:bg-slate-800 text-xs sm:text-sm font-mono font-bold transition-all"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleExecute}
+              className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-900/40 border border-rose-500"
+            >
+              <Shield className="h-4 w-4" />
+              EXECUTE LOCKDOWN
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
